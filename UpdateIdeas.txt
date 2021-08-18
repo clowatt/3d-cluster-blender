@@ -1,0 +1,43 @@
+Warnings:
+- no pandas with this setup; could be something to have on compute canada bpy
+- particle systems can have a maximum of 1 million members
+
+Ideas, in no particular order:
+- update it to have a wrapper that changes the data file location
+- update it to have this entirely done in python, and have the .blend 
+  file call OS scripts
+- update for each particle to have an audio source, or even solely have an 
+  audio souce if it's within a certain diameter of the camera
+  - audio source ideas: rain for relaying less-abstract ideas of stellar density
+                        music note for each type of object
+  - update StellarObject class with the proper information
+- if no audio source on particles, then use a soundtrack to overlay on the 
+  animation
+- Have the material update to be more stellar-like with the granules if you're
+  "close" to the star
+- Have the stars move based on the velocity for a short period of time
+- If required, ditch the particle sytem and use spheres and manage in the 
+  StellarObject class
+  - could make a better view for black holes? 
+- List the stellar density in the camera view
+- List the distance from centre of the cluster in pc that the camera is at
+- Take a few visualizations by default: 
+  - image at centre of cluster
+  - image at half-mass radius of cluster
+  - image at furthest radius of any cluster member towards centre
+  - animation moving to the centre of the cluster without stellar motion
+  - animation moving to the centre of the cluster with stellar motion
+  - animation at the centre of the cluster with stellar motion 
+
+
+Possible implementations or improvements:
+- update the stellar object class to have time-series values by default
+  e.g. at each time snapshot, there is associated position and velocity
+       they are added in order (one way to keep track of a single object
+       over differnt keyframes)
+- use keyframes to move the camera
+- update the velocity for a rate of change (?) between two time snapshots 
+  that satisfies the condition for changed velocity and second time snapshot
+  position
+- use keyframs to move the object to different x,y,z positions so no need to
+  use the velocity as they'll follow a linear path between the two time snapshots
