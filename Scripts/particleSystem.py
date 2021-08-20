@@ -14,6 +14,19 @@ import bpy
 import csv
 import os
 
+####### Variables that change the output of the script
+
+# Hardcoding the 47Tuc file. Would be best to have a wrapper to do this
+dirname = os.path.dirname(__file__)
+dataPath = dirname.replace("Blender/default.blend", "/Data Files/47Tuc.csv")
+
+# Calculate total frames: 
+# 30 frames per second
+seconds = 10
+totalFrames = 30 * seconds
+
+
+####### Classes and functions
 
 class StellarObject:
     def __init__ (self, objectData: list) -> None:
@@ -121,49 +134,110 @@ class StellarObject:
             
     
 
-# Hardcoding the snapshot file. Would be best to have a wrapper to do this
-dirname = os.path.dirname(__file__)
-dataPath = dirname.replace("Blender/default.blend", "/Data Files/snapshot.csv")
-
-# Get the data into a pandas datafram
-#starDataFrame = pd.read_csv(dataPath)
-
-# Each stellar object will be a nested list with definitions
-stellarData = []
-
-# Get the data from the csv file
-with open(dataPath, newline='') as csvfile:
-    stellarReader = csv.reader(csvfile, delimiter=',')
-    firstLine = True
+def getStellarData(dirPath: str) -> tuple:
+    '''
+    This is to grab the stellar data from the csv file,
+    create the stellar objects, and pass back 
+    '''
     
-    for row in stellarReader:
-        if firstLine:
-            firstLine = False
-        else:
-            star = StellarObject(row)
-            print(star)
-            stellarData.append(star)        
+    # Create a list of the different stellar types
+    mainSequenceStar = [] # also includes evolved sequence
+    whiteDwarfStar = []
+    neutronStar = []
+    blackHole = []
+    
+    # Get the data from the csv file
+    with open(dataPath, newline='') as csvfile:
+        stellarReader = csv.reader(csvfile, delimiter=',')
+        firstLine = True
+        
+        for row in stellarReader:
+            # Don't need the header line
+            if firstLine:
+                firstLine = False
+                continue
+        
+            # Create the star, and sort it to the stellar type
+            star = StellarObject(row)    
+            if star.getType() == "1.0":
+                mainSequenceStar.append(star)
+            elif star.getType() == "2.0":
+                mainSequenceStar.append(star)
+            elif star.getType() == "3.0":
+                whiteDwarfStar.append(star)
+            elif star.getType() == "4.0":
+                neutronStar.append(star)
+            elif star.getType() == "5.0":
+                blackHole.append(star)
+            else:
+                print("Totally unexpected!")       
 
+    return mainSequenceStar, whiteDwarfStar, neutronStar, blackHole
+    
+
+def createParticleSystems(mainSequenceTotal: float, whiteDwarfTotal: float, neutronStarTotal: float, blackHoleTotal: float) -> None:
+    '''
+    This will create the proper number of particle systems for the different
+    stellar types.
+    
+    Note: A particle system can only have 1,000,000 particles.
+    '''
+
+    
+
+
+
+
+# Execute the program
+
+mainSequenceStar, whiteDwarfStar, neutronStar, blackHole = getStellarData(dirPath)
+
+
+print("Main Sequence Stars: " + str(len(mainSequenceStar)))
+print("White Dwarf Stars: " + str(len(whiteDwarfStar)))
+print("Neutron Stars: " + str(len(neutronStar)))
+print("Black Holes: " + str(len(blackHole)))
 
 # Update the total particle count
-particleCount = len(stellarData)
-print(particleCount)
+#particleCount = len(stellarData)
+
+
+
+
+
+
+
+
+
+# Ensure there is no physics applied
+bpy.data.particles["ParticleSettings"].physics_type = 'NO'
+
+# Get the dependency graph for the current blender context
+degp = bpy.context.evaluated_depsgraph_get()
+
+# Set the object to the emitter object that is "Cube" in his case
+object = bpy.data.objects["Cube"]
+
+# Get the particle systems attached to the "Cube"
+particle_systems = object.evaluated_get(degp).particle_systems
+
+
+
+
+## Settings to think about
+
 bpy.data.particles["ParticleSettings"].count = 100
 
 # Update the particle system to last the whole time
 bpy.data.particles["ParticleSettings"].frame_start = 1
 
-# Calculate total frames: 
-# 30 frames per second
-seconds = 10
-totalFrames = 30 * seconds
+
 
 # Ensure the particles last for the full time
 bpy.data.particles["ParticleSettings"].frame_end = totalFrames
 bpy.data.particles["ParticleSettings"].lifetime = totalFrames
 bpy.data.particles["ParticleSettings"].lifetime = totalFrames
 
-# Ensure there is no physics applied
-bpy.data.particles["ParticleSettings"].physics_type = 'NO'
+
 
 
