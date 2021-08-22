@@ -175,68 +175,105 @@ def getStellarData(dirPath: str) -> tuple:
     return mainSequenceStar, whiteDwarfStar, neutronStar, blackHole
     
 
-def createParticleSystems(mainSequenceTotal: float, whiteDwarfTotal: float, neutronStarTotal: float, blackHoleTotal: float) -> None:
+
+def createParticleSystems(stellarObjectList: list, type: str) -> None:
     '''
     This will create the proper number of particle systems for the different
     stellar types.
     
     Note: A particle system can only have 1,000,000 particles.
     '''
-
     
+ 
+    particlesToGenerate = len(stellarObjectList)
+    
+    if type == "MS":
+        particleSystemName = "mainSequence"
+        duplicatingObject = "MainSequenceSphere"
+    elif type == "WD":
+        particleSystemName = "whiteDwarf"
+        duplicatingObject = "whiteDwarfSphere"
+    elif type == "NS":
+        particleSystemName = "neutronStar"
+        duplicatingObject = "neutronStar"
+    elif type == "BH":
+        particleSystemName = "blackHole"
+        duplicatingObject = "blackHoleSphere"
+
+    # Create the required number of particle systems   
+    while  particlesToGenerate > 0:
+        print("I'm in the WHILE!")
+        if particlesToGenerate >= 1000000:
+            particlesToGenerate -= 1000000
+            totalSystemCount = 1000000
+        else:
+            totalSystemCount = particlesToGenerate
+            particlesToGenerate -= 1000000
+        
+        # The Cube object is the emitter parent mesh object
+        obj = bpy.data.objects["Cube"]
+        
+        print("Sweet a new particle system!")
+        obj.modifiers.new(particleSystemName, type='PARTICLE_SYSTEM')
+    
+        # Update the dependency graph
+        #degp = bpy.context.evaluated_depsgraph_get()
+
+        # Get the particle systems attached to the "Cube"
+        #particle_systems = obj.evaluated_get(degp).particle_systems   
+        
+        # Update the most recent particle system added 
+        part = obj.particle_systems[-1]
+        settings = part.settings
+        settings.material_slot = "Material-Particles"
+        settings.emit_from = 'VOLUME'
+        settings.physics_type = 'NO'
+        settings.particle_size = 0.1
+        settings.render_type = 'HALO'
+        #settings.instance_object = bpy.data.objects[duplicatingObject]
+        settings.show_unborn = True
+        settings.use_dead = True
+        #settings.count = totalSystemCount
+        settings.frame_start = 1
+        settings.frame_end = totalFrames
+        settings.lifetime = totalFrames
+
+        # Update the position of the particles based on the StellarData
+        # Get the particles associated to the particle system
+        particles = part.particles
+        
+        for i in range(0,len(particles)):
+            star = stellarObjectList.pop()
+            particles[i].location = [star.getPosition()]
+
+        # Apply the changes
+        #bpy.ops.object.duplicates_make_real()
 
 
 
+####### Main Execution
 
-# Execute the program
+mainSequenceStar, whiteDwarfStar, neutronStar, blackHole = getStellarData(dataPath)
 
-mainSequenceStar, whiteDwarfStar, neutronStar, blackHole = getStellarData(dirPath)
-
-
+# Print to the console (or terminal: mac) 
 print("Main Sequence Stars: " + str(len(mainSequenceStar)))
 print("White Dwarf Stars: " + str(len(whiteDwarfStar)))
 print("Neutron Stars: " + str(len(neutronStar)))
 print("Black Holes: " + str(len(blackHole)))
 
-# Update the total particle count
-#particleCount = len(stellarData)
+if len(mainSequenceStar) > 0:
+    createParticleSystems(mainSequenceStar, "MS")
+    
+#if len(whiteDwarfStar) > 0:
+#    createParticleSystems(whiteDwarfStar, "WD")
+
+#if len(neutronStar) > 0:
+#    createParticleSystems(neutronStar, "NS")
+    
+#if len(blackHole) > 0:
+#    createParticleSystems(blackHole, "BH")
 
 
-
-
-
-
-
-
-
-# Ensure there is no physics applied
-bpy.data.particles["ParticleSettings"].physics_type = 'NO'
-
-# Get the dependency graph for the current blender context
-degp = bpy.context.evaluated_depsgraph_get()
-
-# Set the object to the emitter object that is "Cube" in his case
-object = bpy.data.objects["Cube"]
-
-# Get the particle systems attached to the "Cube"
-particle_systems = object.evaluated_get(degp).particle_systems
-
-
-
-
-## Settings to think about
-
-bpy.data.particles["ParticleSettings"].count = 100
-
-# Update the particle system to last the whole time
-bpy.data.particles["ParticleSettings"].frame_start = 1
-
-
-
-# Ensure the particles last for the full time
-bpy.data.particles["ParticleSettings"].frame_end = totalFrames
-bpy.data.particles["ParticleSettings"].lifetime = totalFrames
-bpy.data.particles["ParticleSettings"].lifetime = totalFrames
 
 
 
